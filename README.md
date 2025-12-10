@@ -100,7 +100,7 @@ These cleaning steps reduced noise, standardized timestamps, and removed irrelev
 ### Univariate Analysis
 <iframe
   src="assets/outageshistogram.html"
-  width="800"
+  width="650"
   height="400"
   frameborder="0"
 ></iframe>
@@ -110,7 +110,7 @@ The histogram shows the distribution of outage durations across all recorded eve
 ### Bivariate Analysis
 <iframe
   src="assets/outagesboxplot.html"
-  width="800"
+  width="650"
   height="400"
   frameborder="0"
 ></iframe>
