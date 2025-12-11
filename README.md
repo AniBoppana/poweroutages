@@ -178,6 +178,7 @@ The orange bars show the values for outages with missing cause details, while th
 I am testing whether outages in our dataset tend to last longer than a full day.
 
 **Null hypothesis (H₀)**: The mean outage duration is 24 hours. 
+
 **Alternative hypothesis (H₁)**: The mean outage duration is greater than 24 hours.
 
 I used a one-sample t-test because we are comparing the sample mean to a fixed benchmark and the population standard deviation is unknown. Additionally, this is a directional test.
@@ -185,6 +186,99 @@ I used a one-sample t-test because we are comparing the sample mean to a fixed b
 The resulting test statistic was ~7.661, while the p-value is **1.66 × 10⁻¹⁴**, which is far below the significance level of **α = 0.05**. Thus, we reject the null hypothesis, meaning there is statistically significant evidence that the mean outage duration is greater than 24 hours.
 
 ## Framing a Prediction Problem
+
+My model will try to predict OUTAGE.DURATION, the length of time (in minutes) that a major power outage lasts. This is a regression problem, since the value we are predicting is continuous. I chose this variable because outage duration is one of the most important operational outcomes for utilities and policymakers. Accurately predicting how long an outage will last can help improve planning, resource allocation, and emergency response.
+
+To evaluate model performance, I am using the R² score. R² is appropriate for this task because it measures how much of the variability in outage duration is explained by the model. I chose it over regression metrics such as RMSE or MAE because R² directly reflects explanatory power rather than error magnitude, which makes it better for understanding how much useful predictive structure exists in the data.
+
+Since the **outages** dataframe has other correlated variables, such as ANOMALY.LEVEL, CAUSE.CATEGORY, etc, we can reasonably use them to predict how long the outage will last. Additionally, I only train my model using features that would be known prior to or at the start of the outage, ensuring that no future information plays an unfair role in the prediction process.
+
 ## Baseline Model
+
+I built a regression model to predict OUTAGE.DURATION, the length of power outages in hours.
+
+The features in my model are:
+
+- **CAUSE.CATEGORY (nominal)**: This describes the general cause of the outage, such as severe weather or intentional attacks. Because it is categorical, I applied one-hot encoding to convert it into numerical features.
+
+- **ANOMALY.LEVEL (quantitative)**: This numeric feature captures the severity of the climate anomaly based on the ONI index, where values typically range between -2 and 2. A higher absolute value of anomaly level indicates a stronger intensity level. Since it's already numerical, I just passed it through without changing it.
+
+I used a ColumnTransformer to handle preprocessing and included it in a Pipeline with a Linear Regression model. This is so that the categorical encoding is applied consistently during training and prediction.
+
+On the test set, the model achieved an R² score of approximately 0.2597. This relatively low value indicates that while the model captures some variation in outage duration, much of the variability is unexplained. Therefore, the current model provides a basic baseline, but its predictive performance is limited and could likely be improved with additional features or more complex modeling approaches.
+
 ## Final Model
+
+My final model predicts LOG.OUTAGE.DURATION using the features: ANOMALY.LEVEL, DEMAND.LOSS.MW, CUSTOMER.RATIO, CAUSE.CATEGORY, START.HOUR, and START.DAYOFWEEK. I selected these features because each has a correlation to the outage process:
+
+- **ANOMALY.LEVEL (quantitative)**: Measures the severity of the climate anomaly, which can influence outage duration by making restoration more difficult.
+
+- **DEMAND.LOSS.MW (quantitative)**: Represents the electricity demand lost during the outage, providing a sense of the outage’s scale.
+
+- **CUSTOMER.RATIO (quantitative)**: The ratio of customers affected to population normalizes the impact across regions of different sizes, helping the model account for population density effects.
+
+- **CAUSE.CATEGORY (nominal)**: Categorical cause of the outage, such as severe weather or intentional attacks, is key in distinguishing the underlying reasons that lead to different outage durations.
+
+- **START.HOUR (quantitative) and START.DAYOFWEEK (quantitative)**: Capture temporal patterns in outage response and restoration, since outages occurring at night or on weekends may take longer to fix.
+
+These features are available at the start of an outage and thus are valid predictors.
+
+I used an XGBoost Regressor for the final model because it can capture nonlinear relationships and interactions between features, which are common in outage data. To optimize model performance, I applied GridSearchCV with 5-fold cross-validation over a hyperparameter grid for:
+
+- n_estimators [200, 300]: The number of trees. I tested multiple values to ensure the model had enough trees to capture patterns but not so many that it overfits.
+
+- max_depth [3, 5, 8]: The depth of each tree. Shallower trees reduce overfitting, while deeper trees allow the model to capture more complex relationships.
+
+- learning_rate [0.01, 0.02, 0.1]: Determines how much each tree contributes. I experimented with small rates to ensure gradual learning and avoid overshooting minima.
+
+- subsample [0.8, 1]: Controls the fraction of samples used for each tree. Using 0.8 introduces randomness to improve generalization.
+
+- colsample_bytree [0.8, 1]: Controls the fraction of features used for each tree. Tuning this helps prevent overfitting on features that were more correlated, like CUSTOMER.RATIO and DEMAND.LOSS.MW.
+
+By trying multiple values for each hyperparameter, the grid search allowed me to observe how different combinations affected cross-validated performance.
+
+**The best hyperparameters found were:**
+model__colsample_bytree: 0.8
+model__learning_rate: 0.01
+model__max_depth: 5
+model__n_estimators: 300
+model__subsample: 0.8
+
+On the training set, the model achieved **R² = 0.401**, while on the test set it achieved **R² = 0.548**, a substantial improvement over the baseline linear regression model (R² ≈ 0.259). This improvement happened due to the model’s ability to capture nonlinear relationships and interactions between features. Specifically, the effects of outage cause, temporal factors, and population-adjusted customer impact.
+
+Overall, the final XGBoost model provides a more accurate and nuanced prediction of outage duration than the baseline model, while remaining interpretable in terms of the features driving the predictions.
+
 ## Fairness Analysis
+
+Fairness Analysis: Severe Weather vs. Non-Weather Outages
+
+**Groups:**
+- **Group X (severe weather)**: Outages where CAUSE.CATEGORY is "severe weather"
+- **Group Y (non-weather)**: Outages caused by all other categories
+
+I chose these groups because the cause of an outage can influence its duration, and we want to ensure the model predicts OUTAGE.DURATION equally well across different causes. This is important for reliability and fairness in operational decision-making.
+
+**Evaluation Metric:**
+
+- RMSE (Root Mean Squared Error), since the target is continuous. RMSE measures how closely the model’s predicted durations match the true durations and allows us to compare prediction performance across groups.
+
+**Null Hypothesis (H0):**
+The model predicts outage durations equally well for severe weather and non-weather outages; any difference in RMSE is due to random chance.
+
+**Alternative Hypothesis (H1):**
+The model predicts outage durations differently for severe weather versus non-weather outages; the difference in RMSE is larger than would be expected by chance.
+
+**Test Statistic:**
+T_obs = RMSE_weather - RMSE_nonweather
+A positive or negative value indicates whether the model performs better on one group relative to the other.
+
+**Permutation Test:**
+- I shuffled the WEATHER labels 5,000 times and computed the RMSE difference for each shuffle to generate an empirical null distribution.
+- Significance Level: α = 0.05
+
+**Results:**
+- Observed RMSE difference: T_obs
+- p-value: 0.9306
+
+**Conclusion:**
+Since the p-value is much greater than 0.05, we fail to reject the null hypothesis. This indicates there is no statistically significant difference in model performance between severe weather and non-weather outages. Essentially, the model predicts outage duration fairly across these two groups.
