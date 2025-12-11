@@ -171,8 +171,19 @@ The missingness of CAUSE.CATEGORY.DETAIL is strongly associated with the values 
 The histogram shows the distribution of CAUSE.CATEGORY for outages where the detailed cause is missing versus where it is recorded.
 The orange bars show the values for outages with missing cause details, while the blue bars show the values for outages where the cause is recorded.
 
-
 ## Hypothesis Testing
+
+### Mean Outage Duration
+
+I am testing whether outages in our dataset tend to last longer than a full day.
+
+**Null hypothesis (H₀)**: The mean outage duration is 24 hours. 
+**Alternative hypothesis (H₁)**: The mean outage duration is greater than 24 hours.
+
+I used a one-sample t-test because we are comparing the sample mean to a fixed benchmark and the population standard deviation is unknown. Additionally, this is a directional test.
+
+The resulting test statistic was ~7.661, while the p-value is **1.66 × 10⁻¹⁴**, which is far below the significance level of **α = 0.05**. Thus, we reject the null hypothesis, meaning there is statistically significant evidence that the mean outage duration is greater than 24 hours.
+
 ## Framing a Prediction Problem
 ## Baseline Model
 ## Final Model
