@@ -238,11 +238,11 @@ I used an XGBoost Regressor for the final model because it can capture nonlinear
 By trying multiple values for each hyperparameter, the grid search allowed me to observe how different combinations affected cross-validated performance.
 
 **The best hyperparameters found were:**
-model__colsample_bytree: 0.8
-model__learning_rate: 0.01
-model__max_depth: 5
-model__n_estimators: 300
-model__subsample: 0.8
+- model__colsample_bytree: 0.8
+- model__learning_rate: 0.01
+- model__max_depth: 5
+- model__n_estimators: 300
+- model__subsample: 0.8
 
 On the training set, the model achieved **R² = 0.401**, while on the test set it achieved **R² = 0.548**, a substantial improvement over the baseline linear regression model (R² ≈ 0.259). This improvement happened due to the model’s ability to capture nonlinear relationships and interactions between features. Specifically, the effects of outage cause, temporal factors, and population-adjusted customer impact.
 
@@ -270,6 +270,7 @@ The model predicts outage durations differently for severe weather versus non-we
 
 **Test Statistic:**
 T_obs = RMSE_weather - RMSE_nonweather
+
 A positive or negative value indicates whether the model performs better on one group relative to the other.
 
 **Permutation Test:**
