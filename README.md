@@ -25,6 +25,7 @@ The provided **outages** dataset contains 1540 rows and 57 columns by default.
 - **OUTAGE.RESTORATION** – Timestamp when power was restored.
 
 The question that this project centers around is:
+
 **“Which factors influence the duration of power outages, and can we predict outage length from these features?”**
 
 
@@ -47,7 +48,7 @@ The dataset included separate date and time columns for outage start and restora
 - **Dropped redundant date/time columns**:
 After creating the combined datetime columns, the original separate date and time columns were dropped to simplify the dataset.
 
-These cleaning steps reduced noise, standardized timestamps, and removed irrelevant information, allowing for more accurate modeling and visualization of outage durations.
+These cleaning steps reduced noise, standardized timestamps, and removed irrelevant information, allowing for more accurate modeling, calculations, and visualization of outage durations.
 
 <div style="overflow-x:auto;">
   <table>
@@ -223,6 +224,8 @@ My final model predicts LOG.OUTAGE.DURATION using the features: ANOMALY.LEVEL, D
 
 These features are available at the start of an outage and thus are valid predictors.
 
+Before modeling, I applied a logarithmic transformation to OUTAGE.DURATION to reduce skewness in the distribution. This helps the model better capture relationships between features and outage duration, particularly for very long outages.
+
 I used an XGBoost Regressor for the final model because it can capture nonlinear relationships and interactions between features, which are common in outage data. To optimize model performance, I applied GridSearchCV with 5-fold cross-validation over a hyperparameter grid for:
 
 - n_estimators [200, 300]: The number of trees. I tested multiple values to ensure the model had enough trees to capture patterns but not so many that it overfits.
@@ -278,7 +281,7 @@ A positive or negative value indicates whether the model performs better on one 
 - Significance Level: α = 0.05
 
 **Results:**
-- Observed RMSE difference: T_obs
+- Observed RMSE difference: -0.315
 - p-value: 0.9306
 
 **Conclusion:**
