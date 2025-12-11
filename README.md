@@ -163,7 +163,7 @@ The missingness of CAUSE.CATEGORY.DETAIL is strongly associated with the values 
   <iframe
     src="assets/detailmissingnesshist.html"
     width="1000"
-    height="600"
+    height="500"
     frameborder="0"
   ></iframe>
 </div>
