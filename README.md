@@ -159,12 +159,14 @@ The permutation tests calculated the difference in mean missingness across group
 
 The missingness of CAUSE.CATEGORY.DETAIL is strongly associated with the values of the columns in the table above. Since there is a relationship between CAUSE.CATEGORY.DETAIL's missingness and other columns, the former is MAR by definition. In context, this likely means that outages in certain years and months have systematically more missing detailed causes.
 
-<iframe
-  src="assets/detailmissingnesshist.html"
-  width="800"
-  height="400"
-  frameborder="0"
-></iframe>
+<div style="overflow-x: auto; width: 100%;">
+  <iframe
+    src="assets/detailmissingnesshist.html"
+    width="800"
+    height="400"
+    frameborder="0"
+  ></iframe>
+</div>
 
 The histogram shows the distribution of CAUSE.CATEGORY for outages where the detailed cause is missing versus where it is recorded.
 The orange bars show the values for outages with missing cause details, while the blue bars show the values for outages where the cause is recorded.
