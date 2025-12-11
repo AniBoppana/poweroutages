@@ -162,7 +162,7 @@ The missingness of CAUSE.CATEGORY.DETAIL is strongly associated with the values 
 <div style="overflow-x: auto; width: 100%;">
   <iframe
     src="assets/detailmissingnesshist.html"
-    width="800"
+    width="1000"
     height="400"
     frameborder="0"
   ></iframe>
